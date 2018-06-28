@@ -8,9 +8,9 @@ MySQL workbranch - https://dev.mysql.com/downloads/workbench/?utm_source=tuicool
 
 Подключаемся к базе данных, через workbranch, создаем схему с название files, скриншоты:
 
-# <img src="filestestapplication/scr1.png" width="400" height="400"> 
+# <img src="https://github.com/MikhKoch/filestestapplication/blob/master/scr1.png?raw=true" width="400" height="400"> 
 
-# <img src="filestestapplication/scr2.png" width="400" height="400"> 
+# <img src="https://github.com/MikhKoch/filestestapplication/blob/master/scr1.png?raw=true" width="400" height="400"> 
 
 База данных должна быть развернута на localhost:3306(по умолчанию). Запустить класс Application - должно работать.
 
