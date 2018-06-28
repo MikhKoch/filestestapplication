@@ -48,7 +48,7 @@
                 <td id="date">${directory.date}</td>
                 <td id="path">${directory.path}</td>
                 <td id="dir_count">${directory.directoriesCount}</td>
-                <td id="files_count" disabled="false">${directory.filesCount}</td>
+                <td id="files_count">${directory.filesCount}</td>
                 <td id="size">${directory.size}</td>
                 <td>
                     <c:if test="${!directory.file}">
@@ -66,11 +66,11 @@
     function generateItem(directory) {
         var item = "";
         item += ('<tr>');
-        item += ('<td>' + directory.date + '</td>');
-        item += ('<td>' + directory.path + '</td>');
-        item += ('<td>' + directory.directoriesCount + '</td>');
-        item += ('<td>' + directory.filesCount + '</td>');
-        item += ('<td>' + directory.size + '</td>');
+        item += ('<td id="date">' + directory.date + '</td>');
+        item += ('<td id="path">' + directory.path + '</td>');
+        item += ('<td id="dir_count">' + directory.directoriesCount + '</td>');
+        item += ('<td id="files_count">' + directory.filesCount + '</td>');
+        item += ('<td id="size">' + directory.size + '</td>');
         item += ('<td>');
         if (!directory.file) {
             item += ('<input id="is_directory" type="button" class="btn btn-link" value="файлы" onclick="window.open(\'directory?path=' + directory.path + '\')">');
@@ -82,8 +82,8 @@
 
     function addDirectory() {
         setupInputControl(true);
-        var postdata = {}
-        postdata["path"] = $("#input_path").val()
+        var postdata = {};
+        postdata["path"] = $("#input_path").val();
         $.ajax({
             type: "POST",
             contentType: "application/json",
@@ -93,7 +93,7 @@
             timeout: 100000,
             success: function (d) {
                 if (d.response != null) {
-                    $("#directory_container").append(generateItem(d.response));
+                    addDirectoryToSortedList(d.response);
                 } else if (d.msg != null) {
                     alert("success" + d.msg);
                 }
@@ -104,6 +104,37 @@
                 setupInputControl(false);
             }
         });
+    }
+
+    function addDirectoryToSortedList(newDirectory) {
+        var length = $("#directory_container").children().length;
+        var index = 0;
+        $("#directory_container").children().each(function(i) {
+            var currentPath = $( this ).find('#path').text();
+            var currentIsFile = ($( this ).find('#is_directory').length === 0);
+
+            if(!currentIsFile && newDirectory.isFile) {
+                index ++;
+                return true;
+            } else if(currentIsFile && !newDirectory.isFile) {
+                return false;
+            }
+
+            var regExp = /[A-Za-z0-9А-Яа-я]+/g;
+            var currentResult = newDirectory.path.match(regExp);
+            var result = currentPath.match(regExp);
+            for (var j = 0; j < Math.min(result.length, currentResult.length); j++) {
+                if(currentResult[j].toUpperCase() < result[j].toUpperCase()) {
+                    return false;
+                }
+            }
+            index ++;
+        });
+        if(index != length) {
+            $("#directory_container tr:eq(" + index + ")").before(generateItem(newDirectory));
+        } else {
+            $("#directory_container tr:eq(" + (index -1 )+ ")").after(generateItem(newDirectory));
+        }
     }
 
     function setupInputControl(isDisabled) {
