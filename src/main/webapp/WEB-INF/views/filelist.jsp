@@ -99,7 +99,7 @@
                 }
                 setupInputControl(false);
             },
-            error: function (e) {
+            error: function () {
                 alert("Ошибка");
                 setupInputControl(false);
             }
@@ -107,9 +107,11 @@
     }
 
     function addDirectoryToSortedList(newDirectory) {
-        var length = $("#directory_container").children().length;
+        var container = $("#directory_container");
+        var length = container.children().length;
         var index = 0;
-        $("#directory_container").children().each(function(i) {
+
+        container.children().each(function() {
             var currentPath = $( this ).find('#path').text();
             var currentIsFile = ($( this ).find('#is_directory').length === 0);
 
@@ -130,10 +132,12 @@
             }
             index ++;
         });
-        if(index != length) {
+        if(index === 0) {
+            container.append(generateItem(newDirectory));
+        } else if(index !== length) {
             $("#directory_container tr:eq(" + index + ")").before(generateItem(newDirectory));
         } else {
-            $("#directory_container tr:eq(" + (index -1 )+ ")").after(generateItem(newDirectory));
+            $("#directory_container tr:eq(" + (index - 1 )+ ")").after(generateItem(newDirectory));
         }
     }
 
