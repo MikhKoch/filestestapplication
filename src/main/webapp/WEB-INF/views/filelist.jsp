@@ -90,7 +90,7 @@
             url: "/add_directory",
             data: JSON.stringify(postdata),
             dataType: 'json',
-            timeout: 100000,
+            timeout: 500000,
             success: function (d) {
                 if (d.response != null) {
                     addDirectoryToSortedList(d.response);

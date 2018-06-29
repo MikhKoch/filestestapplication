@@ -12,20 +12,7 @@ public class FileUtils {
     }
 
     public long getFileSize(File file) {
-        long length = 0;
-        if (!file.isDirectory()) {
-            length = file.length();
-        } else {
-            File[] files = file.listFiles();
-            if (files == null) {
-                return length;
-            }
-            int count = files.length;
-            for (int i = 0; i < count; i++) {
-                length += files[i].length();
-            }
-        }
-        return length;
+        return !file.isDirectory() ? file.length() : org.apache.commons.io.FileUtils.sizeOfDirectory(file);
     }
 
     public Date getFileCreationTime(File file) {
