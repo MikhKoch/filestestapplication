@@ -13,17 +13,16 @@ public class FileUtils {
 
     public long getFileSize(File file) {
         long length = 0;
-        if(!file.isDirectory()) {
+        if (!file.isDirectory()) {
             length = file.length();
         } else {
             File[] files = file.listFiles();
+            if (files == null) {
+                return length;
+            }
             int count = files.length;
             for (int i = 0; i < count; i++) {
-                if (files[i].isFile()) {
-                    length += files[i].length();
-                } else {
-                    length += getFileSize(files[i]);
-                }
+                length += files[i].length();
             }
         }
         return length;
