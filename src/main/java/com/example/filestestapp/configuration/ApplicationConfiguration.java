@@ -96,6 +96,6 @@ public class ApplicationConfiguration {
 
     @Bean
     public SimpleDateFormat getSimpleDateFormat() {
-        return new SimpleDateFormat("dd.mm.yyyy hh:mm");
+        return new SimpleDateFormat("dd.MM.yyyy hh:mm");
     }
 }
