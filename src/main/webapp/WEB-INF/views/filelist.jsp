@@ -122,7 +122,7 @@
             //регулярное выражение для литерала только из символов и строк
             var expSplitPattern = /[A-Za-z0-9А-Яа-я]+/g;
             //регулярное выражение для разделения выражения на циферные и буквенные части
-            var numberSplitPattern = /([0-9]+)|([a-zA-zА-Яа-я]+)/g;
+            var numberSplitPattern = /([0-9]+)|([a-zA-ZА-Яа-я]+)/g;
 
             //делим новое и старое значение на группы состоящие из символов и строк
             var newSplit = newDirectory.path.match(expSplitPattern);

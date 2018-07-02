@@ -85,7 +85,7 @@ public class ApplicationConfiguration {
                 //паттерн выражения для литерала только из символов и строк
                 Pattern expSplitPattern = Pattern.compile("[A-Za-z0-9А-Яа-я]+");
                 //паттерн выражения для разделения выражения на циферные и буквенные части
-                Pattern numberLettersSplitPattern = Pattern.compile("([0-9]+)|([a-zA-zА-Яа-я]+)");
+                Pattern numberLettersSplitPattern = Pattern.compile("([0-9]+)|([a-zA-ZА-Яа-я]+)");
                 //выражение для цифры
                 String numberExp = "[0-9]+";
 
