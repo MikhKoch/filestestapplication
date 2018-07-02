@@ -10,12 +10,16 @@ import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.NumberUtils;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -80,13 +84,72 @@ public class ApplicationConfiguration {
             } else if (sub1.isFile() && !sub2.isFile()) {
                 return 1;
             } else {
-                Pattern pattern = Pattern.compile("[A-Za-z0-9А-Яа-я]+");
-                Matcher m1 = pattern.matcher(sub1.name);
-                Matcher m2 = pattern.matcher(sub2.name);
-                while (m1.find() && m2.find()) {
-                    int compareVal = m1.group().compareToIgnoreCase(m2.group());
-                    if(compareVal != 0) {
-                        return compareVal;
+                //паттерн выражения для литерала только из символов и строк
+                Pattern expSplitPattern = Pattern.compile("[A-Za-z0-9А-Яа-я]+");
+                //паттерн выражения для разделения выражения на циферные и буквенные части
+                Pattern numberLettersSplitPattern = Pattern.compile("([0-9]+)|([a-zA-zА-Яа-я]+)");
+                //выражение для цифры
+                String numberExp = "[0-9]+";
+
+                //заполнение списков выражений из символов и строк
+                Matcher expMatcher1 = expSplitPattern.matcher(sub1.name);
+                Matcher expMatcher2 = expSplitPattern.matcher(sub2.name);
+
+                List<String> expMatches1 = new ArrayList<>();
+                List<String> expMatches2 = new ArrayList<>();
+
+                while (expMatcher1.find()) { // find next match
+                    expMatches1.add(expMatcher1.group());
+                }
+                while (expMatcher2.find()) { // find next match
+                    expMatches2.add(expMatcher2.group());
+                }
+                //окончание заполнения
+
+                for (int i = 0; i < Integer.min(expMatches1.size(), expMatches2.size()); i++) {
+                    //заполнение списков строками и цифрами
+                    Matcher numberLettersMatcher1 = numberLettersSplitPattern.matcher(expMatches1.get(i));
+                    Matcher numberLettersMatcher2 = numberLettersSplitPattern.matcher(expMatches2.get(i));
+
+                    List<String> numberLettersMatches1 = new ArrayList<>();
+                    List<String> numberLettersMatches2 = new ArrayList<>();
+
+                    while (numberLettersMatcher1.find()) { // find next match
+                        numberLettersMatches1.add(numberLettersMatcher1.group());
+                    }
+                    while (numberLettersMatcher2.find()) { // find next match
+                        numberLettersMatches2.add(numberLettersMatcher2.group());
+                    }
+                    //окончание заполнения
+                    for (int j = 0; j < Integer.min(numberLettersMatches1.size(), numberLettersMatches2.size()); j++) {
+                        String numberLettersMatch1 = numberLettersMatches1.get(j);
+                        String numberLettersMatch2 = numberLettersMatches2.get(j);
+                        if (!numberLettersMatch1.matches(numberExp) && numberLettersMatch2.matches(numberExp)){
+                            return 1;
+                        } else if (numberLettersMatch1.matches(numberExp) && !numberLettersMatch2.matches(numberExp)) {
+                            return -1;
+                        } else if(numberLettersMatch1.matches(numberExp) && numberLettersMatch2.matches(numberExp)) {
+                            int num1 = Integer.parseInt(numberLettersMatch1);
+                            int num2 = Integer.parseInt(numberLettersMatch2);
+                            if (num1 > num2) {
+                                return 1;
+                            } else if (num1 < num2) {
+                                return -1;
+                            } else if (numberLettersMatch1.length() > numberLettersMatch2.length()) {
+                                return -1;
+                            } else if (numberLettersMatch1.length() < numberLettersMatch2.length()) {
+                                return 1;
+                            }
+                        } else if (numberLettersMatch1.compareToIgnoreCase(numberLettersMatch2) > 0) {
+                            return 1;
+                        } else if (numberLettersMatch1.compareToIgnoreCase(numberLettersMatch2) < 0) {
+                            return -1;
+                        }
+                    }
+                    if (expMatches1.size() > expMatches2.size()) {
+                        return -1;
+                    } else if (expMatches1.size() < expMatches2.size()) {
+                        return 1;
                     }
                 }
                 return 0;

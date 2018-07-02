@@ -1,7 +1,6 @@
 <%@page session="false" %>
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="tlib" uri="/WEB-INF/taglibrary.tld" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <!DOCTYPE html>
 <html lang="en">
@@ -43,26 +42,24 @@
         </tr>
         </thead>
         <tbody id="directory_container">
-        <c:forEach var="directory" items="${tlib:sortDirectories(directories)}">
-            <tr id="directory">
-                <td id="date">${directory.date}</td>
-                <td id="path">${directory.path}</td>
-                <td id="dir_count">${directory.directoriesCount}</td>
-                <td id="files_count">${directory.filesCount}</td>
-                <td id="size">${directory.size}</td>
-                <td>
-                    <c:if test="${!directory.file}">
-                        <input id="is_directory" type="button" class="btn btn-link" value="файлы"
-                               onclick="window.open('directory?path='+'${directory.path}')">
-                    </c:if>
-                </td>
-            </tr>
-        </c:forEach>
         </tbody>
     </table>
 </div>
 
 <script>
+    $(document).ready(function() {
+        <c:forEach var="directory" items="${directories}">
+        var dir = {};
+        dir['date'] = '${directory.date}';
+        dir['path'] = '${directory.path}';
+        dir['directoriesCount'] = '${directory.directoriesCount}';
+        dir['filesCount'] = '${directory.filesCount}';
+        dir['size'] = '${directory.size}';
+        dir['file'] = ${directory.file};
+        addDirectoryToSortedList(dir);
+        </c:forEach>
+    });
+
     function generateItem(directory) {
         var item = "";
         item += ('<tr>');
@@ -90,7 +87,7 @@
             url: "/add_directory",
             data: JSON.stringify(postdata),
             dataType: 'json',
-            timeout: 500000,
+            timeout: 1000000,
             success: function (d) {
                 if (d.response != null) {
                     addDirectoryToSortedList(d.response);
@@ -115,25 +112,72 @@
             var currentPath = $( this ).find('#path').text();
             var currentIsFile = ($( this ).find('#is_directory').length === 0);
 
-            if(!currentIsFile && newDirectory.isFile) {
+            if(!currentIsFile && newDirectory.file) {
                 index ++;
                 return true;
-            } else if(currentIsFile && !newDirectory.isFile) {
+            } else if(currentIsFile && !newDirectory.file) {
                 return false;
             }
 
-            var regExp = /[A-Za-z0-9А-Яа-я]+/g;
-            var currentResult = newDirectory.path.match(regExp);
-            var result = currentPath.match(regExp);
-            for (var j = 0; j < Math.min(result.length, currentResult.length); j++) {
-                if(currentResult[j].toUpperCase() < result[j].toUpperCase()) {
+            //регулярное выражение для литерала только из символов и строк
+            var expSplitPattern = /[A-Za-z0-9А-Яа-я]+/g;
+            //регулярное выражение для разделения выражения на циферные и буквенные части
+            var numberSplitPattern = /([0-9]+)|([a-zA-zА-Яа-я]+)/g;
+
+            //делим новое и старое значение на группы состоящие из символов и строк
+            var newSplit = newDirectory.path.match(expSplitPattern);
+            var currentSplit = currentPath.match(expSplitPattern);
+
+            for (var j = 0; j < Math.min(newSplit.length, currentSplit.length); j++) {
+                //делим строко-символьные литералы на цифры и символы
+                var newNumSplit = newSplit[j].match(numberSplitPattern);
+                var currentNumSplit = currentSplit[j].match(numberSplitPattern);
+                for (var i = 0; i < Math.min(newNumSplit.length, currentNumSplit.length); i++) {
+                    //если i кусок добавляемого не цифра, а i кусок текущего цифра, увеличиваем индекс
+                    if(isNaN(newNumSplit[i]) && !isNaN(currentNumSplit[i])) {
+                        index ++;
+                        return true;
+                    //если i кусок добавляемого цифра, а i кусок текущего не цифра, устанавливаем индекс и выходим из функции each
+                    } else if (!isNaN(newNumSplit[i]) && isNaN(currentNumSplit[i])) {
+                        return false;
+                    //если i кусок добавляемого цифра, а i кусок текущего тоже цифра, сравниваем цифровые значения
+                    } else if(!isNaN(newNumSplit[i]) && !isNaN(currentNumSplit[i])) {
+                        var newNum = parseInt(newNumSplit[i]);
+                        var currentNum = parseInt(currentNumSplit[i]);
+                        //если значение добавляемого больше текущего увеличиваем индекс
+                        if(newNum > currentNum) {
+                            index ++;
+                            return true;
+                        //если значение добавляемого меньше текущего устанавливаем индекс
+                        } else if(newNum < currentNum) {
+                            return false;
+                        //если длина добовляемого больше текущего(например: 0008 и 8) устанавливаем индекс
+                        } else if (newNumSplit[i].length > currentNumSplit[i].length) {
+                            return false;
+                        //если длина добовляемого меньше текущего увеличиваем индекс
+                        } else if (newNumSplit[i].length < currentNumSplit[i].length) {
+                            index++;
+                            return true;
+                        }
+                    //случай оба значения символьные, сравниваем в алфавитном порядке
+                    } else if (newNumSplit[i].toUpperCase() > currentNumSplit[i].toUpperCase()) {
+                        index++;
+                        return true;
+                    } else if (newNumSplit[i].toUpperCase() < currentNumSplit[i].toUpperCase()) {
+                        return false;
+                    }
+                }
+                if (newSplit[j].length > currentSplit[j].length) {
+                    index++;
+                    return true;
+                } else if (newSplit[j].length < currentSplit[j].length) {
                     return false;
                 }
             }
-            index ++;
         });
+
         if(index === 0) {
-            container.append(generateItem(newDirectory));
+            container.prepend(generateItem(newDirectory));
         } else if(index !== length) {
             $("#directory_container tr:eq(" + index + ")").before(generateItem(newDirectory));
         } else {
