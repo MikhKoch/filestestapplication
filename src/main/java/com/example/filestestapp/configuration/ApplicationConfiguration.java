@@ -49,7 +49,7 @@ public class ApplicationConfiguration {
     }
 
     @Bean
-    public Helper getMapper(FileUtils fileUtils,
+    public Helper getHelper(FileUtils fileUtils,
                             Function<DirectoryEntity, DirectoryDTO> directoryMapFunction,
                             Function<SubDirectoryEntity, SubDirectoryDTO> subDirectoryMapFunction,
                             Comparator<SubDirectoryDTO> subDirectoryComparator,
